@@ -87,6 +87,167 @@ const createTshirtDesign = defineTool({
     },
 });
 
+// Define tools for resizing, rotating, and changing colors of objects
+const resizeObject = defineTool({
+    description: 'Resize an object on the canvas',
+    input: {
+        objectId: s.string(),
+        width: s.number(),
+        height: s.number(),
+    },
+    output: s.void(),
+    handler: ({ input }) => {
+        const canvas = new fabric.Canvas('canvas');
+        const object = canvas.getObjectById(input.objectId);
+        if (object) {
+            object.set({
+                width: input.width,
+                height: input.height,
+            });
+            canvas.renderAll();
+        }
+    },
+});
+
+const rotateObject = defineTool({
+    description: 'Rotate an object on the canvas',
+    input: {
+        objectId: s.string(),
+        angle: s.number(),
+    },
+    output: s.void(),
+    handler: ({ input }) => {
+        const canvas = new fabric.Canvas('canvas');
+        const object = canvas.getObjectById(input.objectId);
+        if (object) {
+            object.set({
+                angle: input.angle,
+            });
+            canvas.renderAll();
+        }
+    },
+});
+
+const changeObjectColor = defineTool({
+    description: 'Change the color of an object on the canvas',
+    input: {
+        objectId: s.string(),
+        fill: s.string(),
+    },
+    output: s.void(),
+    handler: ({ input }) => {
+        const canvas = new fabric.Canvas('canvas');
+        const object = canvas.getObjectById(input.objectId);
+        if (object) {
+            object.set({
+                fill: input.fill,
+            });
+            canvas.renderAll();
+        }
+    },
+});
+
+// Define tools for user interaction
+const dragAndDropObject = defineTool({
+    description: 'Enable dragging and dropping of objects on the canvas',
+    input: {
+        objectId: s.string(),
+    },
+    output: s.void(),
+    handler: ({ input }) => {
+        const canvas = new fabric.Canvas('canvas');
+        const object = canvas.getObjectById(input.objectId);
+        if (object) {
+            object.set({
+                selectable: true,
+                hasControls: true,
+            });
+            canvas.on('object:moving', (e) => {
+                const obj = e.target;
+                obj.setCoords();
+            });
+        }
+    },
+});
+
+const handleUserInputEvents = defineTool({
+    description: 'Handle user input events on the canvas',
+    input: {
+        eventType: s.string(),
+        callback: s.function(),
+    },
+    output: s.void(),
+    handler: ({ input }) => {
+        const canvas = new fabric.Canvas('canvas');
+        canvas.on(input.eventType, input.callback);
+    },
+});
+
+// Define tools for creating circles, polygons, and images
+const createCircle = defineTool({
+    description: 'Create a circle on the canvas',
+    input: {
+        radius: s.number(),
+        left: s.number(),
+        top: s.number(),
+        fill: s.string(),
+    },
+    output: s.void(),
+    handler: ({ input }) => {
+        const canvas = new fabric.Canvas('canvas');
+        const circle = new fabric.Circle({
+            left: input.left,
+            top: input.top,
+            fill: input.fill,
+            radius: input.radius,
+        });
+        canvas.add(circle);
+    },
+});
+
+const createPolygon = defineTool({
+    description: 'Create a polygon on the canvas',
+    input: {
+        points: s.array(s.object({
+            x: s.number(),
+            y: s.number(),
+        })),
+        left: s.number(),
+        top: s.number(),
+        fill: s.string(),
+    },
+    output: s.void(),
+    handler: ({ input }) => {
+        const canvas = new fabric.Canvas('canvas');
+        const polygon = new fabric.Polygon(input.points, {
+            left: input.left,
+            top: input.top,
+            fill: input.fill,
+        });
+        canvas.add(polygon);
+    },
+});
+
+const addImage = defineTool({
+    description: 'Add an image to the canvas',
+    input: {
+        url: s.string(),
+        left: s.number(),
+        top: s.number(),
+    },
+    output: s.void(),
+    handler: ({ input }) => {
+        const canvas = new fabric.Canvas('canvas');
+        fabric.Image.fromURL(input.url, (img) => {
+            img.set({
+                left: input.left,
+                top: input.top,
+            });
+            canvas.add(img);
+        });
+    },
+});
+
 // Configure the language model
 const model = anthropic('claude-3-5-sonnet-latest');
 
@@ -94,10 +255,18 @@ const tools = {
     createRectangle,
     addText,
     createTshirtDesign,
+    resizeObject,
+    rotateObject,
+    changeObjectColor,
+    dragAndDropObject,
+    handleUserInputEvents,
+    createCircle,
+    createPolygon,
+    addImage,
 };
 
 // Define a task for the agent
-const prompt = 'Create a t-shirt design with a blue rectangle and some text';
+const prompt = 'Create a t-shirt design with a blue rectangle, some text, and a circle';
 
 // Define the expected output
 const output = s.void();
